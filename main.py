@@ -1,3 +1,5 @@
+import os
+
 from fastmcp import FastMCP
 
 mcp =FastMCP(name="IT Helpdesk MCP Server")
@@ -153,4 +155,5 @@ def estimate_resolution_time(priority: str) -> dict:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    port = int(os.environ.get("PORT", 8080))
+    mcp.run(transport="http", host="0.0.0.0", port=port)
