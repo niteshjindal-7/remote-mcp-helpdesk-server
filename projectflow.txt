@@ -1,76 +1,275 @@
+
+--------------------------------------------
 Project Flow - Custom MCP Server
+--------------------------------------------
 
-1. Create/open the project folder.
 
-   Example:
+----------------------------------------------------------------------------------------
+Create our local MCP server, and 
+we connect this via config to our client(Claude-desktop).
+----------------------------------------------------------------------------------------
+
+1. Verify uv installation.
+
+   uv is usually installed globally or user-wide.
+   It is not installed inside every virtual environment.
+
+   Check the uv path:
+
+   command -v uv
+
+   Example output:
+
+   /Users/njindal/.local/bin/uv
+
+
+2. Create or open the project folder.
+
+   Create the folder:
+
    mkdir project_build_mcp_server
+
+   Move into the folder:
+
    cd project_build_mcp_server
 
-2. Initialize the Python project using uv.
-
-   uv init .
-
-   This creates files like:
-   - pyproject.toml
-   - .python-version
-   - README.md
-   - src/
 
 3. Open the project in VS Code.
 
    code .
 
-4. Create or sync the virtual environment.
+
+4. Initialize the Python project using uv.
+
+   uv init .
+
+   This creates files like:
+
+   - pyproject.toml
+   - .python-version
+   - README.md
+   - src/
+
+
+5. Create or sync the virtual environment.
 
    uv sync
 
-5. Activate the virtual environment on macOS/Linux.
+   This creates or updates the project .venv.
+   It uses pyproject.toml and uv.lock.
+
+
+6. Install required dependencies.
+
+   uv add fastmcp
+
+   What this command does:
+
+   - Creates or uses the project .venv.
+   - Installs fastmcp in that environment.
+   - Adds fastmcp to pyproject.toml.
+   - Updates uv.lock with exact package versions.
+
+   What fastmcp is:
+
+   - fastmcp is a Python library for building MCP servers.
+   - MCP means Model Context Protocol.
+   - It lets AI clients connect to your custom tools.
+   - Examples of clients are Claude Desktop and MCP Inspector.
+   - In normal language, we use MCP Inspector as a testing/debugging tool.
+   - A FastAPI application can be an MCP client if it connects to and calls our MCP server.
+
+   Why we use fastmcp:
+
+   - We write normal Python functions.
+   - fastmcp exposes those functions as MCP tools.
+   - Without FastMCP, building MCP servers requires us to write a lot of 
+   boilerplate code to handle JSON RPC, communication sessions, and client server protocols.
+   FastMCP hides all of these low level details so that we write standard python functions
+   and framework turns then into tool that AI like Claude / Gemini can understand and execute.
+
+
+7. Activate the virtual environment on macOS/Linux.
 
    source .venv/bin/activate
 
    After activation, the terminal should show something like:
+
    (.venv)
 
    Note:
-   Do not use .venv/Scripts/Activate.ps1 on macOS.
-   That command is for Windows PowerShell.
 
-6. Install required dependencies.
+   - Do not use .venv/Scripts/Activate.ps1 on macOS.
+   - That command is for Windows PowerShell.
 
-   uv add mcp
-   uv add fastmcp
 
-7. Add the MCP server code in main.py.
+8. Add or write the MCP server code in main.py.
 
-8. Run the MCP Inspector to test the server locally.
+   In our project, main.py contains:
+
+   - The FastMCP server object.
+   - The MCP tools decorated with @mcp.tool.
+   - The mcp.run() call to start the server.
+
+
+9. Run MCP Inspector to test the server locally.
 
    npx @modelcontextprotocol/inspector uv run python main.py
 
-This command is used to launch the MCP Inspector, an interactive web-based debugging tool 
-that allows us to test, monitor, and troubleshoot your custom Model Context Protocol (MCP) 
-server before connecting it to an AI client like Claude Desktop.
-@modelcontextprotocol/inspector: This is the official MCP Inspector package created by Anthropic.
-It spins up a local web interface that allows us to allows you to test, monitor, and troubleshoot our 
-custom Model Context Protocol (MCP) server before connecting it to an AI client like Claude Desktop.
+   What MCP Inspector is:
 
-we run this command during the development and testing phase of building an MCP server.
-we have written our server code (e.g., in main.py) and want to check if it starts up successfully without errors.
-we want to manually test your tools, resources, or prompts by passing inputs 
-into them and seeing the output responses in real-time.
+   - It is a testing and debugging client.
+   - It helps us check if our MCP server works.
+   - It opens a local web UI for testing tools.
 
-9. If npx asks to install the inspector package, type:
+   When we use it:
 
-   y
+   - During development.
+   - Before connecting the server to Claude Desktop.
+   - When we want to test tools manually.
 
-10. Open the inspector URL shown in the terminal and test your MCP tools.
+   What we can check:
 
-Useful commands:
+   - The server starts without errors.
+   - Tools are visible.
+   - Tool inputs and outputs work correctly.
 
-- Check active Python:
-  which python
 
-- Run Python through uv without manually activating the environment:
-  uv run python
+10. Run the MCP server using FastMCP.
 
-- Run the server through uv:
-  uv run python main.py
+   uv run fastmcp run main.py:mcp
+
+   What this means:
+
+   - uv runs the command in the project environment.
+   - fastmcp is the command-line tool.
+   - run tells fastmcp to start an MCP server.
+   - main.py is the Python file.
+   - mcp is the FastMCP server object inside main.py.
+
+   In our code, the server object is:
+
+   mcp = FastMCP(name="IT Helpdesk MCP Server")
+
+
+11. Install the server into Claude Desktop config.
+
+   uv run fastmcp install claude-desktop main.py
+
+   What this command does:
+
+   - It does not run the MCP server directly.
+   - It edits the Claude Desktop config file.
+   - It adds our MCP server entry to that config.
+   - Claude Desktop uses that entry to start the server later.
+
+   Important:
+
+   - Claude Desktop must access this project folder.
+   - Claude Desktop must access main.py.
+   - If the folder is moved, the config path can break.
+   - If main.py is deleted, Claude Desktop cannot start it.
+
+
+12. Optional manual Claude Desktop config entry.
+
+   Claude Desktop config file on macOS is usually here:
+
+   ~/Library/Application Support/Claude/claude_desktop_config.json
+
+   First get the project folder path:
+
+   pwd
+
+   Then use that path in the config below.
+   Replace <PROJECT_FOLDER> with the path printed by pwd.
+
+   Config entry:
+
+   {
+     "mcpServers": {
+       "it-helpdesk-mcp-server": {
+         "command": "/Users/njindal/.local/bin/uv",
+         "args": [
+           "run",
+           "--directory",
+           "<PROJECT_FOLDER>",
+           "python",
+           "main.py"
+         ]
+       }
+     }
+   }
+
+   After editing the config:
+
+   - Save the file.
+   - Restart Claude Desktop.
+   - Check Developer settings for the MCP server.
+
+
+Useful commands
+
+Check active Python:
+
+which python
+
+Check uv path:
+
+command -v uv
+
+Run Python through uv:
+
+uv run python
+
+Run the server directly:
+
+uv run python main.py
+
+Run the server through FastMCP:
+
+uv run fastmcp run main.py:mcp
+
+
+-----------
+
+With above steps we created our local MCP server, and 
+we connected this via config to our client(Claude-desktop).
+
+Now, we will see how do we deploy this developed server remotely.
+
+-----------------------------------------------------------------------------
+----------- STEPS TO DEPLOY OUR MCP Server -----------
+-----------------------------------------------------------------------------
+
+
+
+The above steps are common that we have to run before we deploy our MCP server -
+Rewritting the above steps in summarized way
+
+Steps A-H
+
+A> Create a new folder and open it in VS Code.
+
+B> Install and verify uv installation:
+   command -v uv
+   uv version
+
+C> Initialize the project:
+   uv init .
+
+D> Add FastMCP dependency:
+   uv add fastmcp
+
+E> Activate the project virtual environment:
+   source .venv/bin/activate
+
+F> Verify FastMCP installation:
+   fastmcp version
+
+G> Add MCP server code to main.py.
+
+H> Test on MCP Inspector:
+
+   Terminal 1:
+   npx @modelcontextprotocol/inspector uv run python main.py
