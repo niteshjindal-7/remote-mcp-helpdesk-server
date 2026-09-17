@@ -245,9 +245,8 @@ Now, we will see how do we deploy this developed server remotely.
 
 
 The above steps are common that we have to run before we deploy our MCP server -
-Rewritting the above steps in summarized way
+Rewritting the above steps in summarized way under Steps A-H. 
 
-Steps A-H
 
 A> Create a new folder and open it in VS Code.
 
@@ -273,3 +272,108 @@ H> Test on MCP Inspector:
 
    Terminal 1:
    npx @modelcontextprotocol/inspector uv run python main.py
+
+-------------
+
+I> Git setup and push to GitHub
+
+1. Check current Git status:
+
+   git status
+
+2. Make sure .DS_Store is not committed:
+
+   git restore --staged .DS_Store
+   echo ".DS_Store" >> .gitignore
+
+3. Stage project changes:
+
+   git add .gitignore projectflow.txt
+
+4. Commit changes on develop branch:
+
+   git commit -m "Update project flow notes"
+
+5. Add GitHub remote:
+
+   git remote add origin https://github.com/niteshjindal-7/remote-mcp-helpdesk-server.git
+
+6. Push local main branch to remote:
+
+   git push -u origin main
+
+7. Push local develop branch to remote:
+
+   git push -u origin develop
+
+8. Continue future work on develop:
+
+   git switch develop
+
+J> Create requirements.txt.
+
+   requirements.txt tells deployment platforms which Python
+   packages they need to install.
+
+   For our current project, we are only directly using fastmcp.
+
+   Add this inside requirements.txt:
+
+   fastmcp==4.0.3
+
+   This helps platforms like Railway install the required package
+   before starting the MCP server.
+
+
+K> Deploy using Railway.
+
+   Go to railway.com.
+
+   Sign up or log in with GitHub.
+
+   Select the GitHub repo:
+
+   remote-mcp-helpdesk-server
+
+   Choose the branch Railway should deploy.
+
+   For production deployment, select:
+
+   main
+
+   For testing deployment, select:
+
+   develop
+
+   Click deploy.
+
+
+L> Check deployment logs in Railway.
+
+   Click the service card.
+
+   Go to:
+
+   Deployment -> Logs
+
+   Use logs to check if the app is running.
+   If there is an error, logs show what failed.
+
+
+M> Generate a public domain in Railway.
+
+   Click the service card.
+
+   Go to:
+
+   Settings -> Networking
+
+   If no public domain exists, click:
+
+   Generate Domain
+
+   Railway will create a public URL for the deployed app.
+
+   for example- remote-mcp-helpdesk-server-production-2be9.up.railway.app
+
+N> Add this domain to custom connect as : https://domain/mcp; then restart claude
