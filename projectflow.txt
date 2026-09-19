@@ -375,5 +375,5 @@ M> Generate a public domain in Railway.
    Railway will create a public URL for the deployed app.
 
    for example- remote-mcp-helpdesk-server-production-2be9.up.railway.app
+   
 
-N> Add this domain to custom connect as : https://domain/mcp; then restart claude
